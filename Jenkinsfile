@@ -1,61 +1,58 @@
-pipeline{
+pipeline {
     agent any
-    triggers{
+    triggers {
         pollSCM('H/5 * * * *')
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        IMAGE_NAME_SERVER   ='minabf/mern-app-server'
+        IMAGE_NAME_SERVER = 'minabf/mern-app-server'
         IMAGE_NAME_CLIENT = 'minabf/mern-app-client'
     }
-    stages{
-        stage('Checkout'){
-            steps{
-               gir branch:'main',
-                    url:'git@github.com:minabl/TP3_ops.git'
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'git@github.com:minabl/TP3_ops.git',
                     credentialsId: 'github_id'
-                }
+            }
         }
-        stage('Build Server Image'){
-            steps{
-                dir('server'){
-                    script{
+        stage('Build Server Image') {
+            steps {
+                dir('server') {
+                    script {
                         dockerImageServer = docker.build("${IMAGE_NAME_SERVER}")
                     }
                 }
             }
-
         }
-        stage('Build Client Image'){
-            steps{
-                dir('client'){
-                    script{
+        stage('Build Client Image') {
+            steps {
+                dir('client') {
+                    script {
                         dockerImageClient = docker.build("${IMAGE_NAME_CLIENT}")
                     }
                 }
-            }     
+            }
         }
-        stage ( 'Scan Server Image ') {
+        stage('Scan Server Image') {
             steps {
                 script {
                     sh """
-                    docker run --rm -v /var/ run/docker.sock
-                    :/ var/run/docker.sock\\
-                    aquasec/trivy:latest image -- exit - code 0
-                    -- severity LOW , MEDIUM , HIGH , CRITICAL
-                    \\
-                    $ { IMAGE_NAME_SERVER }
-                """
+                    docker run --rm \
+                    -v /var/run/docker.sock:/var/run/docker.sock \
+                    aquasec/trivy:latest image --exit-code 0 \
+                    --severity LOW,MEDIUM,HIGH,CRITICAL \
+                    ${IMAGE_NAME_SERVER}
+                    """
                 }
             }
         }
-        stage ( 'Push Images to Docker Hub') {
+        stage('Push Images to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry ( '' , " $ {
-                        DOCKERHUB_CREDENTIALS }") {
-                        dockerImageServer.push ()
-                        dockerImageClient.push ()
+                    docker.withRegistry('', "${DOCKERHUB_CREDENTIALS}") {
+                        dockerImageServer.push()
+                        dockerImageClient.push()
                     }
                 }
             }
