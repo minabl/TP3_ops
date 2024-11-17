@@ -16,6 +16,7 @@ pipeline {
                     credentialsId: 'github_id'
             }
         }
+
         stage('Build Server Image') {
             steps {
                 dir('server') {
@@ -25,6 +26,7 @@ pipeline {
                 }
             }
         }
+
         stage('Build Client Image') {
             steps {
                 dir('client') {
@@ -34,19 +36,35 @@ pipeline {
                 }
             }
         }
+
         stage('Scan Server Image') {
             steps {
                 script {
                     sh """
                     docker run --rm \
-                    -v /var/run/docker.sock:/var/run/docker.sock \
-                    aquasec/trivy:latest image --exit-code 0 \
-                    --severity LOW,MEDIUM,HIGH,CRITICAL \
-                    ${IMAGE_NAME_SERVER}
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        aquasec/trivy:latest image --exit-code 0 \
+                        --severity LOW,MEDIUM,HIGH,CRITICAL \
+                        ${IMAGE_NAME_SERVER}
                     """
                 }
             }
         }
+
+        stage('Scan Client Image') {
+            steps {
+                script {
+                    sh """
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        aquasec/trivy:latest image --exit-code 0 \
+                        --severity LOW,MEDIUM,HIGH,CRITICAL \
+                        ${IMAGE_NAME_CLIENT}
+                    """
+                }
+            }
+        }
+
         stage('Push Images to Docker Hub') {
             steps {
                 script {
