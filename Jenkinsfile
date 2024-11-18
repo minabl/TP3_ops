@@ -5,8 +5,8 @@ pipeline {
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub') // Identifiants Docker Hub
-        IMAGE_NAME_SERVER = 'minabf/mern-app-server' // Nom de l'image Docker pour le serveur
-        IMAGE_NAME_CLIENT = 'minabf/mern-app-client' // Nom de l'image Docker pour le client
+        IMAGE_NAME_SERVER = 'minabf/mern-server' // Nom de l'image Docker pour le serveur
+        IMAGE_NAME_CLIENT = 'minabf/mern-client' // Nom de l'image Docker pour le client
     }
     stages {
         stage('Checkout') { // Étape pour récupérer le code source
